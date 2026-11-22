@@ -268,26 +268,31 @@
 
   // Sync Mode & Persistence
   async function detectAndLoadCatalog() {
-    // 1. Check local python server
+    // 1. Check Server Backend (/api/health -> Vercel Supabase API or Local Live-Sync Server)
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 800);
-      const res = await fetch("/api/health", { signal: ctrl.signal });
+      const timer = setTimeout(() => ctrl.abort(), 3000);
+      const res = await fetch("/api/health", { signal: ctrl.signal, cache: "no-store" });
       clearTimeout(timer);
       if (res.ok) {
         const health = await res.json();
         if (health && health.ok) {
-          state.syncMode = "local";
-          const dataRes = await fetch("/api/skills");
+          if (health.mode === "supabase_cloud") {
+            state.syncMode = "supabase";
+          } else {
+            state.syncMode = health.supabase_synced ? "local_supabase" : "local";
+          }
+          const dataRes = await fetch("/api/skills", { cache: "no-store" });
           if (dataRes.ok) {
             state.catalog = await dataRes.json();
+            localStorage.setItem(STORAGE_CATALOG_KEY, JSON.stringify(state.catalog));
             updateSyncBadge();
             return;
           }
         }
       }
     } catch {
-      // Static hosting or file://
+      // Static hosting without API or file://
     }
 
     // 2. Check GitHub Cloud Sync
@@ -346,7 +351,13 @@
     const badge = $("syncModeBadge");
     const txt = $("syncModeText");
     badge.className = "sync-badge";
-    if (state.syncMode === "local") {
+    if (state.syncMode === "supabase") {
+      badge.classList.add("mode-local");
+      txt.textContent = "Supabase 실시간 DB 연동중";
+    } else if (state.syncMode === "local_supabase") {
+      badge.classList.add("mode-local");
+      txt.textContent = "로컬 + Supabase 실시간 연동";
+    } else if (state.syncMode === "local") {
       badge.classList.add("mode-local");
       txt.textContent = "로컬 파일 실시간 연동";
     } else if (state.syncMode === "github") {
@@ -361,18 +372,27 @@
     state.catalog.last_synced = new Date().toISOString().slice(0, 10);
     localStorage.setItem(STORAGE_CATALOG_KEY, JSON.stringify(state.catalog));
 
-    if (state.syncMode === "local") {
+    if (state.syncMode === "supabase" || state.syncMode === "local" || state.syncMode === "local_supabase") {
       try {
         const res = await fetch("/api/skills", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(state.catalog)
         });
-        if (!res.ok) throw new Error("로컬 저장 실패");
-        showToast(`${actionLabel} 완료! (SKILL.md 및 README 자동 갱신됨)`, "success");
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.error || `HTTP ${res.status}`);
+        }
+        if (state.syncMode === "supabase") {
+          showToast(`${actionLabel} 완료! (Supabase DB에 즉시 저장됨)`, "success");
+        } else if (state.syncMode === "local_supabase") {
+          showToast(`${actionLabel} 완료! (로컬 SKILL.md + Supabase 동시 반영됨)`, "success");
+        } else {
+          showToast(`${actionLabel} 완료! (SKILL.md 및 README 자동 갱신됨)`, "success");
+        }
         return;
       } catch (err) {
-        showToast(`로컬 파일 저장 오류: ${err.message}`, "error");
+        showToast(`서버 DB 저장 오류: ${err.message}`, "error");
         return;
       }
     }
@@ -1228,7 +1248,7 @@
           <button id="btnCopyClonePs" class="btn btn-secondary btn-sm" type="button">💻 서재 클론 명령 복사</button>
           <button id="btnCopyGitClone" class="btn btn-secondary btn-sm" type="button">📦 git clone URL 복사</button>
           <button id="btnCopySkillMd" class="btn btn-secondary btn-sm" type="button">📄 SKILL.md 마크다운 복사</button>
-          ${state.syncMode === "local" ? `<button id="btnLocalCloneNow" class="btn btn-secondary btn-sm" type="button">⬇️ 지금 내 PC에 클론</button>` : ""}
+          ${state.syncMode === "local" || state.syncMode === "local_supabase" ? `<button id="btnLocalCloneNow" class="btn btn-secondary btn-sm" type="button">⬇️ 지금 내 PC에 클론</button>` : ""}
         </div>
       </div>
     `;

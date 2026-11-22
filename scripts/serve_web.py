@@ -59,11 +59,18 @@ class SkillsWebHandler(SimpleHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         path_only = self.path.split("?", 1)[0]
         if path_only == "/api/health":
-            self._send_json({"ok": True, "mode": "local_disk", "root": str(ROOT_DIR)})
+            has_supa = bool(manage_skills.load_supabase_env())
+            self._send_json({"ok": True, "mode": "local_disk", "supabase_synced": has_supa, "root": str(ROOT_DIR)})
             return
         if path_only == "/api/skills":
             try:
-                catalog = manage_skills.load_catalog()
+                catalog = None
+                try:
+                    catalog = manage_skills.pull_from_supabase(silent_if_unconfigured=True)
+                except Exception as exc:
+                    sys.stderr.write(f"[web] Supabase pull fallback to local file: {exc}\n")
+                if catalog is None:
+                    catalog = manage_skills.load_catalog()
                 self._send_json(catalog)
             except Exception as exc:
                 self._send_json({"ok": False, "error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -80,7 +87,12 @@ class SkillsWebHandler(SimpleHTTPRequestHandler):
                     return
                 manage_skills.save_catalog(payload)
                 manage_skills.sync_all(payload)
-                self._send_json({"ok": True, "count": len(payload["skills"])})
+                supa_pushed = False
+                try:
+                    supa_pushed = manage_skills.push_to_supabase(payload, silent_if_unconfigured=True)
+                except Exception as exc:
+                    sys.stderr.write(f"[web] Supabase push warning: {exc}\n")
+                self._send_json({"ok": True, "count": len(payload["skills"]), "supabase_pushed": supa_pushed})
             except Exception as exc:
                 self._send_json({"ok": False, "error": str(exc)}, HTTPStatus.INTERNAL_SERVER_ERROR)
             return

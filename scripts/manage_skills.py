@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import os
 import re
 import subprocess
 import sys
@@ -27,6 +28,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CATALOG_PATH = ROOT_DIR / "catalog" / "skills.json"
+ENV_LOCAL_PATH = ROOT_DIR / ".env.local"
 USER_NOTES_HEADING = "## 나의 실습 및 커스텀 노트 (User Notes)"
 VALID_STATUSES = ("보고 싶음", "써보는 중", "사용 중", "보관")
 
@@ -513,10 +515,99 @@ def find_skill(skills: list[dict[str, Any]], identifier: str) -> dict[str, Any] 
     return None
 
 
-def cmd_sync(_args: argparse.Namespace) -> None:
+def load_supabase_env() -> tuple[str, str] | None:
+    """Load SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from env or .env.local."""
+    url = os.environ.get("SUPABASE_URL", "").strip()
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+    if (not url or not key) and ENV_LOCAL_PATH.exists():
+        for line in ENV_LOCAL_PATH.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or "=" not in stripped:
+                continue
+            k, v = stripped.split("=", 1)
+            k, v = k.strip(), v.strip().strip('"').strip("'")
+            if k == "SUPABASE_URL" and not url:
+                url = v
+            elif k == "SUPABASE_SERVICE_ROLE_KEY" and not key:
+                key = v
+    if url and key:
+        return url.rstrip("/"), key
+    return None
+
+
+def pull_from_supabase(silent_if_unconfigured: bool = False) -> dict[str, Any] | None:
+    """Fetch latest catalog from Supabase and sync local SKILL.md / README.md."""
+    cfg = load_supabase_env()
+    if not cfg:
+        if silent_if_unconfigured:
+            return None
+        raise RuntimeError(".env.local 또는 환경변수에 SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY가 없습니다.")
+    url, key = cfg
+    req = urllib.request.Request(
+        f"{url}/rest/v1/skills_library_catalog?id=eq.main&select=payload,updated_at",
+        headers={
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "User-Agent": "skills-library-cli/1.0",
+        },
+        method="GET",
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        rows = json.loads(resp.read().decode("utf-8"))
+    if not rows or not rows[0].get("payload"):
+        raise RuntimeError("Supabase skills_library_catalog에 'main' 레코드가 없습니다.")
+    catalog = rows[0]["payload"]
+    save_catalog(catalog)
+    sync_all(catalog)
+    print(f"[Supabase Pull 완료] {len(catalog.get('skills', []))}개 스킬을 로컬 서재에 반영했습니다.")
+    return catalog
+
+
+def push_to_supabase(catalog: dict[str, Any] | None = None, silent_if_unconfigured: bool = False) -> bool:
+    """Upsert local catalog JSON to Supabase skills_library_catalog."""
+    cfg = load_supabase_env()
+    if not cfg:
+        if silent_if_unconfigured:
+            return False
+        raise RuntimeError(".env.local 또는 환경변수에 SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY가 없습니다.")
+    if catalog is None:
+        catalog = load_catalog()
+    url, key = cfg
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    body = json.dumps({"id": "main", "payload": catalog, "updated_at": now_iso}, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(
+        f"{url}/rest/v1/skills_library_catalog",
+        data=body,
+        headers={
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Prefer": "resolution=merge-duplicates,return=minimal",
+            "User-Agent": "skills-library-cli/1.0",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=15) as _resp:
+        pass
+    print(f"[Supabase Push 완료] {len(catalog.get('skills', []))}개 스킬을 Supabase 클라우드 DB에 저장했습니다.")
+    return True
+
+
+def cmd_sync(args: argparse.Namespace) -> None:
     catalog = load_catalog()
     save_catalog(catalog)
     sync_all(catalog)
+    if getattr(args, "push", False):
+        push_to_supabase(catalog, silent_if_unconfigured=False)
+
+
+def cmd_pull(_args: argparse.Namespace) -> None:
+    pull_from_supabase(silent_if_unconfigured=False)
+
+
+def cmd_push(_args: argparse.Namespace) -> None:
+    catalog = load_catalog()
+    push_to_supabase(catalog, silent_if_unconfigured=False)
 
 
 def cmd_add(args: argparse.Namespace) -> None:
@@ -600,12 +691,32 @@ def cmd_add(args: argparse.Namespace) -> None:
             "memo": memo,
             "use_when": use_when,
             "install_or_usage": install_or_usage,
+            "visual_guide": {
+                "exec_type": "⚡ GitHub 오픈소스 스킬",
+                "flow_steps": [
+                    {"icon": "📥", "label": "요구사항·대상 입력", "detail": use_when or description},
+                    {"icon": "⚙️", "label": f"{name} 실행", "detail": description},
+                    {"icon": "✨", "label": "결과물 출력", "detail": "작업 완료 및 검증"},
+                ],
+                "before_after": {
+                    "before": f"{name} 없이 수동으로 반복 처리",
+                    "after": f"{name} 자동화로 빠르고 일관된 결과 확보",
+                },
+                "commands": [
+                    {"step": "① 저장소 클론", "cmd": f"powershell -File scripts\\clone-skill.ps1 {slug}", "desc": "로컬 ./repo 폴더에 다운로드"},
+                    {"step": "② 실행 / 호출", "cmd": f"{name} 스킬을 현재 작업에 맞게 실행하는 방법을 안내해줘", "desc": "핵심 실행 명령어 또는 AI 호출 프롬프트"},
+                ],
+            },
         }
         skills.append(entry)
         print(f"[추가 완료] #{entry['id']} {entry['name']} -> {cat_id}/{entry['slug']}/SKILL.md")
 
     save_catalog(catalog)
     sync_all(catalog)
+    try:
+        push_to_supabase(catalog, silent_if_unconfigured=True)
+    except Exception as exc:
+        print(f"[안내] Supabase 자동 푸시 건너뜀 ({exc})", file=sys.stderr)
 
     if args.clone:
         clone_skill_entry(entry)
@@ -695,6 +806,10 @@ def cmd_status(args: argparse.Namespace) -> None:
     entry["status"] = args.new_status
     save_catalog(catalog)
     sync_all(catalog)
+    try:
+        push_to_supabase(catalog, silent_if_unconfigured=True)
+    except Exception as exc:
+        print(f"[안내] Supabase 자동 푸시 건너뜀 ({exc})", file=sys.stderr)
     print(f"[상태 변경] #{entry['id']} {entry['name']}: '{old_status}' -> '{args.new_status}'")
 
 
@@ -702,7 +817,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="오픈소스 서재 (d:\\Skills) 통합 관리 CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("sync", help="catalog/skills.json 기준으로 모든 SKILL.md 및 README.md 동기화")
+    p_sync = sub.add_parser("sync", help="catalog/skills.json 기준으로 모든 SKILL.md 및 README.md 동기화")
+    p_sync.add_argument("--push", action="store_true", help="동기화 후 Supabase 클라우드 DB에도 업로드")
+
+    sub.add_parser("pull", help="Supabase 클라우드 DB에서 최신 서재를 가져와 로컬 SKILL.md·README 갱신")
+    sub.add_parser("push", help="로컬 catalog/skills.json을 Supabase 클라우드 DB에 업로드")
 
     p_add = sub.add_parser("add", help="새 GitHub 저장소를 서재에 추가")
     p_add.add_argument("repo", help="GitHub URL 또는 owner/repo (예: https://github.com/owner/repo)")
@@ -742,6 +861,10 @@ def main() -> int:
     try:
         if args.command == "sync":
             cmd_sync(args)
+        elif args.command == "pull":
+            cmd_pull(args)
+        elif args.command == "push":
+            cmd_push(args)
         elif args.command == "add":
             cmd_add(args)
         elif args.command == "search":
