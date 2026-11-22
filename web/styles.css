@@ -223,6 +223,8 @@ code {
   cursor: pointer;
   transition: all 0.15s ease;
   font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-primary {
@@ -1060,9 +1062,392 @@ table.skills-table tr:hover td {
 .toast.success { border-left-color: var(--green); }
 .toast.error { border-left-color: var(--danger); }
 
+/* Visual Flow & Quick Command GUI Styles */
+.modal-xl {
+  max-width: 920px;
+}
+
+.badge-exec {
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
+  border-color: color-mix(in srgb, var(--blue) 35%, transparent);
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.card-flow-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 8px;
+}
+
+.card-flow-step {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.card-flow-step-icon {
+  font-size: 0.92rem;
+  line-height: 1.1;
+}
+
+.card-flow-step-label {
+  font-size: 0.71rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+  word-break: keep-all;
+}
+
+.card-flow-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.card-cmd-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 9px;
+}
+
+.card-cmd-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Detail Modal Flowchart */
+.modal-flow-diagram {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+
+.modal-flow-node {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-top: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-flow-node-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-flow-node-detail {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.modal-flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Before / After Comparison */
+.before-after-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.ba-box {
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.84rem;
+  border: 1px solid var(--border);
+}
+
+.ba-before {
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.ba-after {
+  background: var(--green-soft);
+  border-color: color-mix(in srgb, var(--green) 35%, transparent);
+}
+
+.ba-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.ba-before .ba-title { color: var(--danger); }
+.ba-after .ba-title { color: var(--green); }
+
+/* Command Playbook Cards */
+.command-playbook {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmd-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.cmd-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 11px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.cmd-card-step {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.cmd-card-desc {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  flex: 1;
+}
+
+.cmd-card-code {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: var(--bg-input);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Sub-skills Explorer */
+.subskills-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.subskills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.subskill-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subskill-card:hover {
+  border-color: var(--accent);
+}
+
+.subskill-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.subskill-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.subskill-flow {
+  font-size: 0.76rem;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 4px 7px;
+  border-radius: 6px;
+}
+
+.subskill-desc {
+  font-size: 0.79rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.subskill-cmd-row {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 7px;
+}
+
+.subskill-cmd-row code {
+  border: none;
+  padding: 0;
+  background: transparent;
+  font-size: 0.73rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Visual Guide Top-Level View */
+.visual-guide-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.visual-section-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.visual-section-title {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+}
+
+.visual-section-sub {
+  margin: 2px 0 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.pipeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pipeline-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pipeline-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.pipeline-track {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pipeline-stage {
+  flex: 1;
+  min-width: 190px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pipeline-stage-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.pipeline-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.pipeline-node-btn {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pipeline-node-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 @media (max-width: 760px) {
   .cards-grid,
-  .situations-grid {
+  .situations-grid,
+  .before-after-grid,
+  .subskills-grid {
     grid-template-columns: 1fr;
   }
   .form-grid-2,
@@ -1071,5 +1456,11 @@ table.skills-table tr:hover td {
   }
   .input-with-btn {
     flex-direction: column;
+  }
+  .modal-flow-diagram {
+    flex-direction: column;
+  }
+  .modal-flow-arrow {
+    transform: rotate(90deg);
   }
 }

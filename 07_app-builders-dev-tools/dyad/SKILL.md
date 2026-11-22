@@ -19,6 +19,37 @@ description: "유료 Lovable 구독 대신 내 PC 로컬 환경에서 무료 API
 
 - 유료 Lovable 구독 대신 내 PC 로컬 환경에서 무료 API 키 또는 로컬 LLM과 Supabase를 연결해 풀스택 웹앱을 바이브코딩으로 빠르게 만들고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🖥️ 로컬 오픈소스 바이브코딩 앱 빌더
+
+```mermaid
+flowchart LR
+    S1["💬 자연어로 앱 화면 설명\n무료 Gemini 키 또는 로컬 Ollama 연결"]
+    S2["💻 내 PC 폴더에 코드 생성\n실시간 프리뷰 + Supabase 로그인/DB 연동"]
+    S3["🚀 소유권 100% 앱 배포\n클라우드 종속 없이 내 로컬 프로젝트 보유"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | 유료 Lovable 구독료 부담 + 클라우드에 코드가 묶여있는 불안감 |
+| ✅ **스킬 적용 후 (After)** | 내 PC에서 무료 API/로컬 LLM으로 Supabase 풀스택 앱을 바로 제작 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 앱 설치 또는 클론
+- Windows/Mac/Linux 지원, GitHub Releases 설치 파일 제공
+```text
+powershell -File scripts\clone-skill.ps1 dyad
+```
+
+### ② 로컬 바이브코딩 시작
+- 가입 없이 로컬 앱 빌더 실행
+```text
+Dyad에서 Gemini API 키 또는 로컬 Ollama를 연결해 새 Supabase 웹앱을 시작하는 법 알려줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

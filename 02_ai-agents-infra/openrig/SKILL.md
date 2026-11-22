@@ -19,6 +19,37 @@ description: "Claude Code와 Codex 에이전트 역할을 YAML로 선언해 한 
 
 - Claude Code와 Codex 에이전트 역할을 YAML로 선언해 한 번에 팀으로 부팅하고 협업시키고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🤖 YAML 멀티에이전트 팀 하네스
+
+```mermaid
+flowchart LR
+    S1["📄 YAML로 팀 정의\nClaude Code·Codex 역할·권한 선언"]
+    S2["🚀 단일 명령 부팅\n여러 에이전트를 한 팀으로 동시 기동"]
+    S3["🤝 협업 작업 수행\n역할 분담 후 결과 통합"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | Claude Code 터미널과 Codex 터미널을 따로 띄워 복사·붙여넣기로 협업 |
+| ✅ **스킬 적용 후 (After)** | YAML 파일 하나로 멀티 에이전트 팀을 선언하고 한 명령어로 동시 가동 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- YAML 팀 정의 예제 확인
+```text
+powershell -File scripts\clone-skill.ps1 openrig
+```
+
+### ② 팀 설정 및 부팅
+- 프로젝트 맞춤형 멀티에이전트 팀 구성
+```text
+openrig 설정 파일(YAML)에 Claude Code와 Codex 역할 분담을 작성해줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

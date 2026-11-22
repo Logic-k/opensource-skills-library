@@ -79,10 +79,53 @@
     }
   ];
 
+  const LIFECYCLE_PIPELINES = [
+    {
+      title: "1️⃣ 기획 · 프롬프트 다듬기 · 아이디어 검증 · 딥리서치",
+      stages: [
+        { label: "① 프롬프트·요구사항 구체화", slugs: ["prompt-master", "mcp-prompt-optimizer", "gpt-prompt-engineer"] },
+        { label: "② 논리 찬반·토너먼트 검증", slugs: ["court-skill", "arena-skill"] },
+        { label: "③ 출처 삼각검증 딥리서치", slugs: ["insane-research", "korean-law-mcp", "auto-ontology-mcp"] }
+      ]
+    },
+    {
+      title: "2️⃣ 바이브코딩 · 네이티브 앱 빌드 · UI 폴리싱 · 배포",
+      stages: [
+        { label: "① 앱/제품 빌드", slugs: ["dyad", "replica-skill", "bawa", "bama"] },
+        { label: "② AI 슬롭 UI 제거·자가수정", slugs: ["unslop", "stageshow"] },
+        { label: "③ 경량 데스크톱 앱 변환", slugs: ["pake", "cli-anything"] }
+      ]
+    },
+    {
+      title: "3️⃣ 실전 엔지니어링 · 아키텍처 · 배포 전 보안 감사",
+      stages: [
+        { label: "① 인터뷰·스펙·티켓·TDD", slugs: ["mattpocock-skills"] },
+        { label: "② 코드 구조 시각화·헬스체크", slugs: ["floorplan"] },
+        { label: "③ 배포 전 보안 감사·서버 점검", slugs: ["security-audit-skill", "aimap", "voidaccess", "netryx-astra-v2"] }
+      ]
+    },
+    {
+      title: "4️⃣ 에이전트 실시간 관제 · 멀티에이전트 · 로컬 AI 인프라",
+      stages: [
+        { label: "① 멀티에이전트·VM 하네스", slugs: ["openrig", "dsh-superagent-prototype", "cua"] },
+        { label: "② 사무실/도시 실시간 시각화", slugs: ["claude-office", "whatsmyagentdoing", "agent-town", "agentcity"] },
+        { label: "③ 로컬 AI 스택·온디바이스", slugs: ["ods", "litert-lm", "free-claude-code", "ds2api"] }
+      ]
+    },
+    {
+      title: "5️⃣ 숏폼 자동 생성 · 영상 스튜디오 · 데모 녹화",
+      stages: [
+        { label: "① 주제 기반 숏폼 자동 제작", slugs: ["moneyprinterturbo", "pixelle-video"] },
+        { label: "② 12단계 에이전트 스튜디오", slugs: ["openmontage"] },
+        { label: "③ 커서 자동 줌 데모 녹화", slugs: ["openscreen"] }
+      ]
+    }
+  ];
+
   const state = {
     catalog: null,
     syncMode: "browser", // "local" | "github" | "browser"
-    viewMode: "cards", // "cards" | "situations" | "table"
+    viewMode: "cards", // "cards" | "visual" | "situations" | "table"
     filters: {
       query: "",
       status: "전체",
@@ -91,6 +134,7 @@
       sort: "recent"
     },
     genresExpanded: false,
+    visualMattPhase: "전체",
     ghConfig: loadGhConfig()
   };
 
@@ -496,15 +540,19 @@
     renderActiveFilterBar();
 
     const filtered = getFilteredSkills();
-    const isEmpty = state.viewMode !== "situations" && filtered.length === 0;
+    const isCustomView = state.viewMode === "situations" || state.viewMode === "visual";
+    const isEmpty = !isCustomView && filtered.length === 0;
 
     $("cardsView").classList.toggle("hidden", state.viewMode !== "cards" || isEmpty);
+    $("visualView").classList.toggle("hidden", state.viewMode !== "visual");
     $("situationsView").classList.toggle("hidden", state.viewMode !== "situations");
     $("tableView").classList.toggle("hidden", state.viewMode !== "table" || isEmpty);
     $("emptyState").classList.toggle("hidden", !isEmpty);
 
     if (state.viewMode === "cards" && !isEmpty) {
       renderCards(filtered);
+    } else if (state.viewMode === "visual") {
+      renderVisualGuide();
     } else if (state.viewMode === "situations") {
       renderSituations();
     } else if (state.viewMode === "table" && !isEmpty) {
@@ -599,11 +647,35 @@
     const f = state.filters;
     const hasFilter = f.query || f.status !== "전체" || f.category !== "전체" || f.genre !== "전체";
     const bar = $("activeFilterBar");
-    bar.classList.toggle("hidden", !hasFilter || state.viewMode === "situations");
+    bar.classList.toggle("hidden", !hasFilter || state.viewMode === "situations" || state.viewMode === "visual");
     if (hasFilter) {
       const count = getFilteredSkills().length;
       $("resultCountText").textContent = `필터 결과: ${count}개 표시 중`;
     }
+  }
+
+  function getPrimaryCommand(skill) {
+    const vg = skill.visual_guide || {};
+    const cmds = vg.commands || [];
+    if (cmds.length > 1) return cmds[1].cmd || cmds[0].cmd || "";
+    if (cmds.length === 1) return cmds[0].cmd || "";
+    return `powershell -File scripts\\clone-skill.ps1 ${skill.slug}`;
+  }
+
+  function renderCardFlowBar(skill) {
+    const steps = skill.visual_guide?.flow_steps || [];
+    if (!steps.length) return "";
+    const nodes = steps
+      .map(
+        (st) => `
+          <div class="card-flow-step" title="${escapeHtml(st.detail || st.label)}">
+            <span class="card-flow-step-icon">${escapeHtml(st.icon || "•")}</span>
+            <span class="card-flow-step-label">${escapeHtml(st.label || "")}</span>
+          </div>
+        `
+      )
+      .join('<span class="card-flow-arrow">➔</span>');
+    return `<div class="card-flow-bar" aria-label="작동 흐름">${nodes}</div>`;
   }
 
   function renderCards(skills) {
@@ -615,9 +687,14 @@
         const tagsHtml = (s.tags || [])
           .map((t) => `<span class="tag-chip" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</span>`)
           .join("");
+        const execBadge = s.visual_guide?.exec_type
+          ? `<span class="badge badge-exec">${escapeHtml(s.visual_guide.exec_type)}</span>`
+          : "";
         const langBadge = s.language ? `<span class="badge">${escapeHtml(s.language)}</span>` : "";
         const licBadge = s.license ? `<span class="badge">${escapeHtml(s.license)}</span>` : "";
         const useWhen = s.use_when || s.description || "";
+        const flowBarHtml = renderCardFlowBar(s);
+        const primaryCmd = getPrimaryCommand(s);
 
         return `
           <article class="skill-card" data-id="${s.id}">
@@ -639,10 +716,13 @@
 
             <div class="card-badges">
               <span class="badge badge-cat">${escapeHtml(catTitle)}</span>
+              ${execBadge}
               <span class="badge">${escapeHtml(s.genre || "기타")}</span>
               ${langBadge}
               ${licBadge}
             </div>
+
+            ${flowBarHtml}
 
             <p class="card-desc">${escapeHtml(s.description || "")}</p>
 
@@ -650,6 +730,15 @@
               <strong>🎯 언제 꺼내 쓰나</strong>
               <span>${escapeHtml(useWhen)}</span>
             </div>
+
+            ${
+              primaryCmd
+                ? `<div class="card-cmd-bar">
+                    <span class="card-cmd-text" title="${escapeHtml(primaryCmd)}">$ ${escapeHtml(primaryCmd)}</span>
+                    <button class="btn btn-ghost btn-sm" data-action="copy-cmd" data-cmd="${escapeHtml(primaryCmd)}" type="button" title="명령어/프롬프트 복사">📋</button>
+                  </div>`
+                : ""
+            }
 
             ${tagsHtml ? `<div class="card-tags">${tagsHtml}</div>` : ""}
 
@@ -664,7 +753,7 @@
 
             <div class="card-actions">
               <div class="card-actions-left">
-                <button class="btn btn-secondary btn-sm" data-action="detail" data-id="${s.id}" type="button">상세·활용</button>
+                <button class="btn btn-secondary btn-sm" data-action="detail" data-id="${s.id}" type="button">🧭 도식·명령어</button>
                 <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${s.id}" type="button">수정</button>
               </div>
               <div class="card-actions-right">
@@ -676,6 +765,104 @@
         `;
       })
       .join("");
+  }
+
+  function renderVisualGuide() {
+    const skills = state.catalog.skills || [];
+    const bySlug = {};
+    for (const s of skills) bySlug[s.slug] = s;
+    const q = state.filters.query.trim().toLowerCase();
+
+    const pipelinesHtml = LIFECYCLE_PIPELINES.map((pipe) => {
+      const stagesHtml = pipe.stages
+        .map((st) => {
+          const btns = st.slugs
+            .map((sl) => {
+              const item = bySlug[sl];
+              if (!item) return "";
+              return `<button class="pipeline-node-btn" data-action="detail" data-id="${item.id}" type="button" title="${escapeHtml(item.use_when || item.description)}">${escapeHtml(item.name)}</button>`;
+            })
+            .filter(Boolean)
+            .join("");
+          return `
+            <div class="pipeline-stage">
+              <div class="pipeline-stage-label">${escapeHtml(st.label)}</div>
+              <div class="pipeline-nodes">${btns}</div>
+            </div>
+          `;
+        })
+        .join('<span class="modal-flow-arrow">➔</span>');
+
+      return `
+        <div class="pipeline-card">
+          <div class="pipeline-title">${escapeHtml(pipe.title)}</div>
+          <div class="pipeline-track">${stagesHtml}</div>
+        </div>
+      `;
+    }).join("");
+
+    const mpSkill = bySlug["mattpocock-skills"];
+    const mpSubs = mpSkill?.visual_guide?.sub_skills || [];
+    const phases = ["전체", ...new Set(mpSubs.map((sub) => sub.phase))];
+    const activePhase = phases.includes(state.visualMattPhase) ? state.visualMattPhase : "전체";
+
+    const filteredMp = mpSubs.filter((sub) => {
+      if (activePhase !== "전체" && sub.phase !== activePhase) return false;
+      if (q) {
+        const hay = `${sub.name} ${sub.phase} ${sub.flow} ${sub.desc} ${sub.cmd}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const phasePillsHtml = phases
+      .map(
+        (ph) =>
+          `<button class="pill ${ph === activePhase ? "active" : ""}" data-mp-phase="${escapeHtml(ph)}" type="button">${escapeHtml(ph)}</button>`
+      )
+      .join("");
+
+    const mpGridHtml = filteredMp
+      .map(
+        (sub) => `
+        <div class="subskill-card">
+          <div class="subskill-head">
+            <span class="subskill-name">${escapeHtml(sub.name)}</span>
+            <span class="badge">${escapeHtml(sub.phase)}</span>
+          </div>
+          <div class="subskill-flow">${escapeHtml(sub.flow)}</div>
+          <p class="subskill-desc">${escapeHtml(sub.desc)}</p>
+          <div class="subskill-cmd-row">
+            <code title="${escapeHtml(sub.cmd)}">${escapeHtml(sub.cmd)}</code>
+            <button class="btn btn-ghost btn-sm" data-action="copy-cmd" data-cmd="${escapeHtml(sub.cmd)}" type="button">📋 복사</button>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+
+    $("visualView").innerHTML = `
+      <div class="visual-section-card">
+        <div>
+          <h2 class="visual-section-title">🧭 상황별 5대 오픈소스 스킬 파이프라인</h2>
+          <p class="visual-section-sub">각 단계의 스킬 버튼을 누르면 작동 흐름도·Before/After·실행 명령어 GUI 플레이북이 열립니다.</p>
+        </div>
+        <div class="pipeline-list">${pipelinesHtml}</div>
+      </div>
+
+      ${
+        mpSubs.length
+          ? `<div class="visual-section-card">
+              <div>
+                <h2 class="visual-section-title">⚡ Antigravity 전역 스킬 27종 GUI 치트시트 (Matt Pocock Skills)</h2>
+                <p class="visual-section-sub">현재 PC 전역에 설치된 27개 스킬입니다. 단계별 필터를 고르고 명령어/프롬프트를 1클릭으로 복사해 채팅창에 바로 붙여넣으세요.</p>
+              </div>
+              <div class="subskills-filter-bar">${phasePillsHtml}</div>
+              <div class="subskills-grid">${mpGridHtml || '<p class="help-text">검색 조건에 맞는 세부 스킬이 없습니다.</p>'}</div>
+            </div>`
+          : ""
+      }
+    `;
   }
 
   function renderSituations() {
@@ -822,6 +1009,8 @@
     $("fUseWhen").value = skill.use_when || "";
     $("fTags").value = (skill.tags || []).join(", ");
     $("fSavedDate").value = skill.saved_date || new Date().toISOString().slice(0, 10);
+    $("fExecType").value = skill.visual_guide?.exec_type || "";
+    $("fPrimaryCmd").value = getPrimaryCommand(skill);
     $("fInstallUsage").value = skill.install_or_usage || "";
     $("fMemo").value = skill.memo || "";
     openModal("skillFormModal");
@@ -869,6 +1058,121 @@
     ].join("\n");
   }
 
+  function renderModalVisualSection(skill) {
+    const vg = skill.visual_guide || {};
+    const steps = vg.flow_steps || [];
+    const ba = vg.before_after || {};
+    const cmds = vg.commands || [];
+    const subs = vg.sub_skills || [];
+
+    const flowHtml = steps.length
+      ? `
+        <div class="detail-section">
+          <h4>🧭 한눈에 보는 작동 흐름 (Visual Flow)</h4>
+          <div class="modal-flow-diagram">
+            ${steps
+              .map(
+                (st) => `
+                <div class="modal-flow-node">
+                  <div class="modal-flow-node-head">
+                    <span>${escapeHtml(st.icon || "⚡")}</span>
+                    <span>${escapeHtml(st.label || "")}</span>
+                  </div>
+                  <div class="modal-flow-node-detail">${escapeHtml(st.detail || "")}</div>
+                </div>
+              `
+              )
+              .join('<div class="modal-flow-arrow">➔</div>')}
+          </div>
+        </div>
+      `
+      : "";
+
+    const baHtml =
+      ba.before || ba.after
+        ? `
+        <div class="before-after-grid">
+          <div class="ba-box ba-before">
+            <span class="ba-title">❌ 기존 방식의 불편함 (Before)</span>
+            <div>${escapeHtml(ba.before || "")}</div>
+          </div>
+          <div class="ba-box ba-after">
+            <span class="ba-title">✅ 스킬 적용 후 변화 (After)</span>
+            <div>${escapeHtml(ba.after || "")}</div>
+          </div>
+        </div>
+      `
+        : "";
+
+    const cmdsHtml = cmds.length
+      ? `
+        <div class="detail-section">
+          <h4>⌨️ 단계별 명령어 & 프롬프트 치트시트</h4>
+          <div class="command-playbook">
+            ${cmds
+              .map(
+                (c) => `
+                <div class="cmd-card">
+                  <div class="cmd-card-header">
+                    <span class="cmd-card-step">${escapeHtml(c.step || "실행")}</span>
+                    <span class="cmd-card-desc">${escapeHtml(c.desc || "")}</span>
+                    <button class="btn btn-ghost btn-sm" data-action="copy-cmd" data-cmd="${escapeHtml(c.cmd || "")}" type="button">📋 복사</button>
+                  </div>
+                  <pre class="cmd-card-code">${escapeHtml(c.cmd || "")}</pre>
+                </div>
+              `
+              )
+              .join("")}
+          </div>
+        </div>
+      `
+      : "";
+
+    let subsHtml = "";
+    if (subs.length) {
+      const phases = ["전체", ...new Set(subs.map((sub) => sub.phase || "기타"))];
+      subsHtml = `
+        <div class="detail-section" id="modalSubskillsBox">
+          <h4>🧩 세부 스킬 / 파이프라인 단계 (${subs.length}종) — 클릭하여 복사</h4>
+          ${
+            phases.length > 2
+              ? `<div class="subskills-filter-bar">
+                  ${phases
+                    .map(
+                      (ph, idx) =>
+                        `<button class="pill ${idx === 0 ? "active" : ""}" data-modal-phase="${escapeHtml(ph)}" type="button">${escapeHtml(ph)}</button>`
+                    )
+                    .join("")}
+                </div>`
+              : ""
+          }
+          <div class="subskills-grid" id="modalSubskillsGrid">
+            ${subs
+              .map(
+                (sub) => `
+                <div class="subskill-card" data-sub-phase="${escapeHtml(sub.phase || "기타")}">
+                  <div class="subskill-head">
+                    <span class="subskill-name">${escapeHtml(sub.name)}</span>
+                    <span class="badge">${escapeHtml(sub.phase || "")}</span>
+                  </div>
+                  <div class="subskill-flow">${escapeHtml(sub.flow || "")}</div>
+                  <p class="subskill-desc">${escapeHtml(sub.desc || "")}</p>
+                  <div class="subskill-cmd-row">
+                    <code title="${escapeHtml(sub.cmd || "")}">${escapeHtml(sub.cmd || "")}</code>
+                    <button class="btn btn-ghost btn-sm" data-action="copy-cmd" data-cmd="${escapeHtml(sub.cmd || "")}" type="button">📋</button>
+                  </div>
+                </div>
+              `
+              )
+              .join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    return flowHtml + baHtml + cmdsHtml + subsHtml;
+  }
+
   function openDetailModal(skillId) {
     const skill = (state.catalog.skills || []).find((s) => s.id === skillId);
     if (!skill) return;
@@ -877,6 +1181,7 @@
 
     $("detailBadges").innerHTML = `
       <span class="badge badge-cat">${escapeHtml(catTitle)}</span>
+      ${skill.visual_guide?.exec_type ? `<span class="badge badge-exec">${escapeHtml(skill.visual_guide.exec_type)}</span>` : ""}
       <span class="badge">${escapeHtml(skill.genre || "기타")}</span>
       <span class="badge">${escapeHtml(formatStars(skill.stars_at_save))}</span>
       ${skill.language ? `<span class="badge">${escapeHtml(skill.language)}</span>` : ""}
@@ -887,6 +1192,7 @@
     const cloneCmd = `powershell -File scripts\\clone-skill.ps1 ${skill.slug}`;
     const gitCloneCmd = `git clone ${skill.github_url}`;
     const agentPrompt = `현재 작업에 '${skill.name}' (${skill.github_url}) 오픈소스 스킬을 적용하고 싶습니다.\n- 목적/활용 시점: ${skill.use_when || skill.description}\n- 참고 메모: ${skill.memo || "없음"}\n이 도구의 설치 및 적용 방법을 안내하고 현재 프로젝트에 맞게 도와주세요.`;
+    const visualSectionHtml = renderModalVisualSection(skill);
 
     $("detailBody").innerHTML = `
       <p style="margin:0;">${escapeHtml(skill.description || "")}</p>
@@ -895,6 +1201,8 @@
         <strong>🎯 언제 꺼내 쓰나 (적재적소 활용 시점)</strong>
         <span>${escapeHtml(skill.use_when || skill.description || "")}</span>
       </div>
+
+      ${visualSectionHtml}
 
       <div class="detail-section">
         <h4>🔗 저장소 및 설치 방법</h4>
@@ -924,6 +1232,25 @@
         </div>
       </div>
     `;
+
+    $("detailBody").onclick = (ev) => {
+      const copyBtn = ev.target.closest("[data-action='copy-cmd']");
+      if (copyBtn) {
+        copyText(copyBtn.dataset.cmd || "", "명령어/프롬프트");
+        return;
+      }
+      const phaseBtn = ev.target.closest("[data-modal-phase]");
+      if (phaseBtn) {
+        const chosen = phaseBtn.dataset.modalPhase;
+        $("detailBody").querySelectorAll("[data-modal-phase]").forEach((b) => {
+          b.classList.toggle("active", b === phaseBtn);
+        });
+        $("detailBody").querySelectorAll("#modalSubskillsGrid .subskill-card").forEach((card) => {
+          const match = chosen === "전체" || card.dataset.subPhase === chosen;
+          card.classList.toggle("hidden", !match);
+        });
+      }
+    };
 
     $("detailFooter").innerHTML = `
       <div>
@@ -974,6 +1301,26 @@
     openModal("skillDetailModal");
   }
 
+  function buildDefaultVisualGuide({ name, slug, description, use_when, execType, primaryCmd }) {
+    const cmd = primaryCmd || `${name} 스킬을 현재 작업에 맞게 실행하는 방법을 안내해줘`;
+    return {
+      exec_type: execType || "⚡ GitHub 오픈소스 스킬",
+      flow_steps: [
+        { icon: "📥", label: "요구사항·대상 입력", detail: use_when || description || name },
+        { icon: "⚙️", label: `${name} 실행`, detail: description || "핵심 워크플로우 처리" },
+        { icon: "✨", label: "결과물 출력", detail: "작업 완료 및 검증" }
+      ],
+      before_after: {
+        before: `${name} 없이 수동으로 반복 처리`,
+        after: `${name} 자동화로 빠르고 일관된 결과 확보`
+      },
+      commands: [
+        { step: "① 저장소 클론", cmd: `powershell -File scripts\\clone-skill.ps1 ${slug}`, desc: "로컬 ./repo 폴더에 다운로드" },
+        { step: "② 실행 / 호출", cmd, desc: "핵심 실행 명령어 또는 AI 호출 프롬프트" }
+      ]
+    };
+  }
+
   // CRUD Handlers
   async function handleFormSubmit(e) {
     e.preventDefault();
@@ -996,9 +1343,23 @@
 
     const skills = state.catalog.skills;
 
+    const execTypeVal = $("fExecType").value.trim();
+    const primaryCmdVal = $("fPrimaryCmd").value.trim();
+
     if (editId) {
       const target = skills.find((s) => s.id === editId);
       if (!target) return;
+      const existingVg = target.visual_guide ? structuredClone(target.visual_guide) : buildDefaultVisualGuide({ name, slug, description: $("fDescription").value.trim(), use_when: $("fUseWhen").value.trim(), execType: execTypeVal, primaryCmd: primaryCmdVal });
+      if (execTypeVal) existingVg.exec_type = execTypeVal;
+      if (primaryCmdVal) {
+        if (!Array.isArray(existingVg.commands) || existingVg.commands.length === 0) {
+          existingVg.commands = [{ step: "① 실행 명령", cmd: primaryCmdVal, desc: "핵심 실행/호출 명령" }];
+        } else if (existingVg.commands.length > 1) {
+          existingVg.commands[1].cmd = primaryCmdVal;
+        } else {
+          existingVg.commands[0].cmd = primaryCmdVal;
+        }
+      }
       Object.assign(target, {
         name,
         slug,
@@ -1015,7 +1376,8 @@
         tags,
         saved_date: $("fSavedDate").value || target.saved_date,
         install_or_usage: $("fInstallUsage").value.trim(),
-        memo: $("fMemo").value.trim()
+        memo: $("fMemo").value.trim(),
+        visual_guide: existingVg
       });
       closeModal("skillFormModal");
       renderAll();
@@ -1039,6 +1401,8 @@
     }
 
     const nextId = skills.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+    const descVal = $("fDescription").value.trim();
+    const useWhenVal = $("fUseWhen").value.trim();
     const newSkill = {
       id: nextId,
       slug,
@@ -1052,13 +1416,21 @@
       language: $("fLanguage").value.trim(),
       license: $("fLicense").value.trim() || "미확인",
       saved_date: $("fSavedDate").value || new Date().toISOString().slice(0, 10),
-      description: $("fDescription").value.trim(),
+      description: descVal,
       tags,
       memo: $("fMemo").value.trim(),
-      use_when: $("fUseWhen").value.trim(),
+      use_when: useWhenVal,
       install_or_usage:
         $("fInstallUsage").value.trim() ||
-        `저장소 클론 후 README 참고 (powershell -File scripts/clone-skill.ps1 ${slug})`
+        `저장소 클론 후 README 참고 (powershell -File scripts/clone-skill.ps1 ${slug})`,
+      visual_guide: buildDefaultVisualGuide({
+        name,
+        slug,
+        description: descVal,
+        use_when: useWhenVal,
+        execType: execTypeVal,
+        primaryCmd: primaryCmdVal
+      })
     };
 
     skills.unshift(newSkill);
@@ -1200,8 +1572,15 @@
     $("btnResetFilters").addEventListener("click", resetFilters);
     $("btnEmptyReset").addEventListener("click", resetFilters);
 
-    // Card / Situation / Table actions (delegation)
+    // Card / Situation / Table / Visual Guide actions (delegation)
     const handleListClick = (e) => {
+      const mpPhaseBtn = e.target.closest("[data-mp-phase]");
+      if (mpPhaseBtn) {
+        state.visualMattPhase = mpPhaseBtn.dataset.mpPhase;
+        renderVisualGuide();
+        return;
+      }
+
       const tagEl = e.target.closest("[data-tag]");
       if (tagEl) {
         searchInput.value = tagEl.dataset.tag;
@@ -1215,6 +1594,10 @@
       if (!actEl) return;
       if (actEl.tagName === "SELECT") return;
       const action = actEl.dataset.action;
+      if (action === "copy-cmd") {
+        copyText(actEl.dataset.cmd || "", "명령어/프롬프트");
+        return;
+      }
       const id = Number(actEl.dataset.id);
       if (action === "detail") {
         e.preventDefault();
@@ -1229,6 +1612,7 @@
     };
 
     $("cardsView").addEventListener("click", handleListClick);
+    $("visualView").addEventListener("click", handleListClick);
     $("situationsView").addEventListener("click", handleListClick);
     $("tableView").addEventListener("click", handleListClick);
 

@@ -19,6 +19,43 @@ description: "주제 한 줄로 스톡 영상·TTS·자막·BGM이 포함된 숏
 
 - 주제 한 줄로 스톡 영상·TTS·자막·BGM이 포함된 숏폼 홍보/정보 영상을 빠르게 자동 생성하고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🖥️ 로컬 웹UI / 파이프라인 앱
+
+```mermaid
+flowchart LR
+    S1["📝 주제 1줄 입력\n영상 키워드/주제 전달"]
+    S2["🎬 AI 대본·스톡·TTS 합성\n장면 매칭·음성·자막·BGM 자동 결합"]
+    S3["📱 숏폼 MP4 완성\n세로형 쇼츠/릴스 즉시 렌더링"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | 대본 작성→스톡 영상 검색→TTS 녹음→자막 싱크까지 수 시간 수작업 |
+| ✅ **스킬 적용 후 (After)** | 주제 한 줄만 입력하면 대본·자막·배경음악이 입혀진 숏폼 자동 완성 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- d:\Skills\06_media-video\moneyprinterturbo\repo 에 다운로드
+```text
+powershell -File scripts\clone-skill.ps1 moneyprinterturbo
+```
+
+### ② WebUI 실행
+- 로컬 브라우저 GUI 화면을 열어 주제와 음성·BGM 옵션을 선택
+```text
+webui.bat   # 또는 streamlit run webui/Main.py
+```
+
+### ③ AI 도우미 활용
+- 대본 톤과 자막 스타일을 AI와 함께 구성
+```text
+MoneyPrinterTurbo WebUI 또는 API를 이용해 '[주제]'에 대한 60초 숏폼 설정값을 잡아줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

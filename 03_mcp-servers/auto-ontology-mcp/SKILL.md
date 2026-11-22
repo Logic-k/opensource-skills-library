@@ -19,6 +19,37 @@ NVIDIA Auto Ontology의 시맨틱 레이어를 Claude, ChatGPT 등 MCP 클라이
 
 - 정확한 조인/SQL 검증이 필요한 Text-to-SQL DB 질의나 영수증·논문·노트를 온톨로지 지식 그래프로 구조화해 Obsidian vault와 연동하고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🔌 온톨로지 DB·지식베이스 MCP 서버
+
+```mermaid
+flowchart LR
+    S1["🗄️ DB/문서 연결\nDB 스키마·영수증·논문·노트 입력"]
+    S2["🕸️ 시맨틱 온톨로지 매핑\n개념·관계·출처 추출 및 SQL 검증"]
+    S3["💎 정확한 SQL / Obsidian 내보내기\n조인 오류 없는 질의 및 지식그래프 축적"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | Text-to-SQL 시 조인 키를 틀리거나 개인 문서·영수증이 흩어짐 |
+| ✅ **스킬 적용 후 (After)** | 온톨로지 계층으로 SQL을 검증하고 Obsidian Vault로 지식 자동 정리 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- 별도 LLM API 키 없이 MCP 클라이언트가 추론 담당
+```text
+powershell -File scripts\clone-skill.ps1 auto-ontology-mcp
+```
+
+### ② MCP 클라이언트 연결
+- DB 질의 및 Obsidian 지식베이스 도구 활성화
+```text
+README 안내에 따라 mcp_config.json 에 auto-ontology-mcp 서버 등록
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

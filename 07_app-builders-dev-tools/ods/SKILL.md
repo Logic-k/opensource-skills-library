@@ -19,6 +19,37 @@ PC/Mac/Linux를 로컬 AI 서버로 바꾸는 스택 설치기. Open WebUI·llam
 
 - Open WebUI, llama-server, n8n, ComfyUI, Qdrant가 한 번에 연결된 로컬 AI 서버 스택 구성 스크립트를 참고하거나 구축하고 싶을 때 (소스 사전 검토 권장)
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🐳 올인원 로컬 AI 서버 스택 설치기
+
+```mermaid
+flowchart LR
+    S1["💻 PC/Mac/Linux 준비\n로컬 머신 환경 확인 (사전 소스 검증 권장)"]
+    S2["🧩 5종 AI 스택 자동 연동\nOpen WebUI·llama-server·n8n·ComfyUI·Qdrant"]
+    S3["🏠 프라이빗 AI 허브 구동\n채팅·자동화·이미지·벡터DB 통합 운영"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | Open WebUI, n8n, ComfyUI, 벡터DB를 각각 설치하고 포트를 일일이 연결 |
+| ✅ **스킬 적용 후 (After)** | 미리 연결된 통합 스택 구성 참고 (단, 스타 수·라이선스 혼재 이슈로 스크립트 사전 검토 필수) |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 클론 후 소스 검토
+- 주의: 홍보 수치와 실제 저장소 차이가 있어 실행 전 스크립트 검토 필수
+```text
+powershell -File scripts\clone-skill.ps1 ods
+```
+
+### ② Docker 구성 확인
+- 로컬 AI 스택 아키텍처 참고
+```text
+ods 저장소 안의 docker-compose 및 설치 스크립트를 분석해서 안전한 부분만 설명해줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

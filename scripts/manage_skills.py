@@ -137,6 +137,68 @@ def format_stars(stars: Any) -> str:
     return "미표기"
 
 
+def render_visual_section(skill: dict[str, Any]) -> str:
+    """Render Mermaid workflow diagram, Before/After table, commands, and sub-skills."""
+    vg = skill.get("visual_guide")
+    if not isinstance(vg, dict):
+        return ""
+
+    parts: list[str] = []
+    exec_type = vg.get("exec_type") or "오픈소스 도구"
+    steps = vg.get("flow_steps") or []
+
+    parts.append("## 한눈에 보는 작동 흐름 (Visual Workflow)\n")
+    parts.append(f"- **실행 형태:** {exec_type}\n")
+
+    if steps:
+        parts.append("```mermaid\nflowchart LR")
+        node_ids = []
+        for idx, st in enumerate(steps, start=1):
+            nid = f"S{idx}"
+            node_ids.append(nid)
+            label = f"{st.get('icon', '')} {st.get('label', '')}".strip().replace('"', "'")
+            detail = (st.get("detail") or "").replace('"', "'")
+            text = f"{label}\\n{detail}" if detail else label
+            parts.append(f'    {nid}["{text}"]')
+        if len(node_ids) > 1:
+            parts.append("    " + " --> ".join(node_ids))
+        parts.append("```\n")
+
+    ba = vg.get("before_after") or {}
+    if ba.get("before") or ba.get("after"):
+        b_txt = str(ba.get("before", "")).replace("|", "\\|")
+        a_txt = str(ba.get("after", "")).replace("|", "\\|")
+        parts.append("| 구분 | 설명 |")
+        parts.append("| :--- | :--- |")
+        parts.append(f"| ❌ **기존 문제 (Before)** | {b_txt} |")
+        parts.append(f"| ✅ **스킬 적용 후 (After)** | {a_txt} |\n")
+
+    cmds = vg.get("commands") or []
+    if cmds:
+        parts.append("## 단계별 명령어 & 프롬프트 치트시트\n")
+        for c in cmds:
+            parts.append(f"### {c.get('step', '실행')}")
+            if c.get("desc"):
+                parts.append(f"- {c['desc']}")
+            parts.append(f"```text\n{c.get('cmd', '')}\n```\n")
+
+    sub_skills = vg.get("sub_skills") or []
+    if sub_skills:
+        parts.append(f"## 세부 스킬 / 파이프라인 단계 ({len(sub_skills)}종)\n")
+        parts.append("| 이름 | 단계 | 작동 흐름 | 호출 명령 / 프롬프트 | 설명 |")
+        parts.append("| :--- | :---: | :--- | :--- | :--- |")
+        for sub in sub_skills:
+            s_name = str(sub.get("name", "")).replace("|", "\\|")
+            s_phase = str(sub.get("phase", "")).replace("|", "\\|")
+            s_flow = str(sub.get("flow", "")).replace("|", "\\|")
+            s_cmd = str(sub.get("cmd", "")).replace("|", "\\|").replace("`", "'")
+            s_desc = str(sub.get("desc", "")).replace("|", "\\|")
+            parts.append(f"| **{s_name}** | `{s_phase}` | {s_flow} | `{s_cmd}` | {s_desc} |")
+        parts.append("")
+
+    return "\n".join(parts) + "\n"
+
+
 def render_skill_md(skill: dict[str, Any], cat_meta: dict[str, str], existing_path: Path) -> str:
     """Render standardized SKILL.md card for an item."""
     tags = skill.get("tags") or []
@@ -156,6 +218,7 @@ def render_skill_md(skill: dict[str, Any], cat_meta: dict[str, str], existing_pa
     cloned_status = "로컬 클론 완료 (`./repo`)" if repo_dir.exists() else "미클론 (경량 카드 모드)"
     yaml_title = skill["name"].replace('"', '\\"')
     yaml_genre = skill.get("genre", "").replace('"', '\\"')
+    visual_block = render_visual_section(skill)
 
     return (
         f"---\n"
@@ -173,6 +236,7 @@ def render_skill_md(skill: dict[str, Any], cat_meta: dict[str, str], existing_pa
         f"{skill.get('description', '')}\n\n"
         f"## 언제 꺼내 쓰나 (적재적소 활용 시점)\n\n"
         f"- {use_when}\n\n"
+        f"{visual_block}"
         f"## 기본 정보\n\n"
         f"| 항목 | 내용 |\n"
         f"| :--- | :--- |\n"

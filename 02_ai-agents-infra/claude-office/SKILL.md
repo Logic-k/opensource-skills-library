@@ -19,6 +19,37 @@ Claude Code(+Codex) 작업을 브라우저 속 미니처 사무실 캐릭터로 
 
 - 추가 API 토큰 비용이나 복잡한 설치 없이 로컬 Claude Code / Codex 세션 로그를 실시간 한국형 미니어처 사무실 캐릭터(`localhost:4777`)로 모니터링하고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🏢 한국형 미니어처 사무실 시각화 (localhost:4777)
+
+```mermaid
+flowchart LR
+    S1["📂 세션 로그 실시간 감시\n~/.claude/projects/*.jsonl 0.25초 폴링"]
+    S2["🚪 부서별 방 이동 애니메이션\n자료실·개발실·서버실·회의실 + 질문 시 대표실"]
+    S3["🌐 localhost:4777 뷰어\n토큰·패키지 추가 없이 Node 18+로 즉시 실행"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | 에이전트가 지금 파일을 읽는지, 서버를 돌리는지, 질문을 기다리는지 한눈에 안 보임 |
+| ✅ **스킬 적용 후 (After)** | 자료실·개발실·대표실을 오가는 미니어처 캐릭터로 API 토큰 0원에 실시간 확인 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- 한국 제작, 추가 npm 패키지·API 토큰 소모 없음
+```text
+powershell -File scripts\clone-skill.ps1 claude-office
+```
+
+### ② 뷰어 실행
+- Claude Code & Codex 세션을 실시간 사무실 화면으로 관제
+```text
+node server.js   # 실행 후 브라우저 http://localhost:4777 접속
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

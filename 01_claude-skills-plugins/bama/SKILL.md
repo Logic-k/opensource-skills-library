@@ -19,6 +19,37 @@ description: "macOS 환경(맥북)에서 Claude Code를 이용해 Swift/SwiftUI 
 
 - macOS 환경(맥북)에서 Claude Code를 이용해 Swift/SwiftUI 네이티브 맥 앱을 스크린샷 및 체크리스트 기반으로 자동 빌드하고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🍎 macOS 네이티브 앱 빌더 플러그인 (21스킬)
+
+```mermaid
+flowchart LR
+    S1["📸 전 화면 스크린샷 & 체크리스트\n대상 앱 UI 분석 후 기능 명세 도출"]
+    S2["🦉 Swift / SwiftUI 단계별 빌드\nmacOS 26 + Xcode 26 기반 구현"]
+    S3["🌗 라이트/다크 스냅샷 & Dock 실행\n커밋 전 전 화면 검증 후 맥 앱 완성"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | SwiftUI 네이티브 맥 앱을 일일이 Xcode에서 손으로 배치하고 검증 |
+| ✅ **스킬 적용 후 (After)** | 21개 Claude Code 스킬이 스크린샷 체크리스트 기반으로 맥 앱을 자동 빌드 (Mac 전용) |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① Mac에서 클론
+- 주의: macOS 26+ & Xcode 26+ 필요 (윈도우 환경에선 BAWA 사용)
+```text
+powershell -File scripts\clone-skill.ps1 bama
+```
+
+### ② 맥 앱 빌드 요청
+- 맥북 환경에서 실행
+```text
+BAMA 플러그인으로 [원하는 맥 앱]을 SwiftUI 네이티브 앱으로 빌드해줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

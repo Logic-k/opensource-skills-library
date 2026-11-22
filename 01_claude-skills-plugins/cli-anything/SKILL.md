@@ -19,6 +19,37 @@ GUI 앱을 전용 CLI + `SKILL.md`로 만드는 도구. 7단계 파이프라인,
 
 - 마우스로만 조작하던 GUI 소프트웨어(Blender, Godot, Obsidian 등)를 에이전트가 제어할 수 있도록 전용 CLI와 `SKILL.md`로 자동 변환하고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** ⌨️ GUI 앱 → CLI + SKILL.md 자동 변환기
+
+```mermaid
+flowchart LR
+    S1["🖱️ GUI 앱 지정\nBlender·Godot·Obsidian 등 대상 선택"]
+    S2["🔄 7단계 하네스 변환\n내부 API/파일 구조 분석 후 CLI 래핑"]
+    S3["📜 전용 CLI + SKILL.md 생성\nAI 에이전트가 마우스 대신 터미널로 앱 제어"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | Blender·Obsidian 같은 GUI 프로그램은 AI 코딩 에이전트가 직접 조작하기 어려움 |
+| ✅ **스킬 적용 후 (After)** | 7단계 파이프라인으로 에이전트가 바로 쓸 수 있는 CLI와 SKILL.md를 자동 생성 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- HKUDS/CLI-Anything 7단계 하네스 다운로드
+```text
+powershell -File scripts\clone-skill.ps1 cli-anything
+```
+
+### ② GUI 앱 변환
+- AI가 직접 제어할 수 있는 자동화 인터페이스 구축
+```text
+CLI-Anything 파이프라인을 참고해서 [대상 앱/툴]을 에이전트용 CLI와 SKILL.md로 변환해줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

@@ -19,6 +19,37 @@ description: "MCP 클라이언트 안에서 사용자 프롬프트의 명확도�
 
 - MCP 클라이언트 안에서 사용자 프롬프트의 명확도를 점수화하고 모호할 때 자동으로 보충 질문을 생성하는 OTA 워크플로우를 연결하고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🔌 OTA(Optimize-Then-Answer) MCP 서버
+
+```mermaid
+flowchart LR
+    S1["📊 명확도 점수 측정\n입력 프롬프트의 구체성 평가"]
+    S2["❔ 60% 미만 시 보충 질문\n1~3개 핵심 질문 자동 생성"]
+    S3["✅ 최적화된 프롬프트로 실행\nMCP 클라이언트에서 고품질 답변 도출"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | 프롬프트가 모호해도 AI가 넘겨짚고 바로 코드를 짜버림 |
+| ✅ **스킬 적용 후 (After)** | 명확도 60% 미만이면 자동으로 1~3개 질문을 거쳐 정확도 향상 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 클론 및 빌드
+- TypeScript 프로젝트 로컬 다운로드 (초기 프로젝트이므로 코드 확인 권장)
+```text
+powershell -File scripts\clone-skill.ps1 mcp-prompt-optimizer
+```
+
+### ② MCP 등록
+- 빌드 후 mcp_config.json에 node dist/index.js 연결
+```text
+npm install && npm run build
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

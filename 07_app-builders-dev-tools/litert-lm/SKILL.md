@@ -19,6 +19,37 @@ Google의 온디바이스 LLM 실행 오케스트레이션 레이어. Gemma 등 
 
 - 클라우드 비용이나 네트워크 없이 모바일·데스크톱·엣지 기기에서 Gemma 등 경량 LLM을 GPU/NPU 가속으로 직접 구동하는 앱을 개발할 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 📱 Google 온디바이스 LLM 런타임
+
+```mermaid
+flowchart LR
+    S1["🧠 소형 LLM(Gemma 등) 탑재\n양자화된 온디바이스 모델 준비"]
+    S2["⚡ GPU / NPU 하드웨어 가속\nLiteRT 오케스트레이션 레이어 구동"]
+    S3["📵 오프라인·무료 추론\nAndroid·iOS·Desktop·IoT에서 직접 실행"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | 작은 기능 하나에도 매번 클라우드 LLM API 과금과 네트워크 지연 발생 |
+| ✅ **스킬 적용 후 (After)** | 사용자 기기의 GPU/NPU에서 오프라인으로 빠르게 소형 LLM 직접 실행 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- google-ai-edge/LiteRT-LM 다운로드
+```text
+powershell -File scripts\clone-skill.ps1 litert-lm
+```
+
+### ② 플랫폼 연동
+- 온디바이스 AI 앱 개발 시 활용
+```text
+LiteRT-LM으로 Windows 또는 Android 앱에 Gemma 모델을 온디바이스로 붙이는 방법을 안내해줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

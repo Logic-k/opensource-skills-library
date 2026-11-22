@@ -19,6 +19,37 @@ description: "자주 쓰는 웹서비스나 자체 만든 웹앱(예: localhost�
 
 - 자주 쓰는 웹서비스나 자체 만든 웹앱(예: localhost나 SaaS)을 Electron보다 훨씬 가벼운 Tauri 기반 Windows/Mac 네이티브 데스크톱 앱으로 감싸고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 📦 웹사이트 → 네이티브 앱 변환 CLI
+
+```mermaid
+flowchart LR
+    S1["🌐 웹사이트 URL 입력\nSaaS·노션·내 웹앱 주소 지정"]
+    S2["🦀 Rust + Tauri 패키징\nOS 내장 WebView로 초경량 빌드"]
+    S3["🖥️ 독립 실행 앱 설치\nWindows(.exe/.msi), Mac(.dmg) 완성"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | 브라우저 탭 수십 개 속에 웹앱이 묻히거나 무거운 Electron 앱 사용 |
+| ✅ **스킬 적용 후 (After)** | 명령어 한 줄로 수 MB 수준의 가벼운 독립 데스크톱 앱으로 변환 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① CLI 설치
+- Rust 및 빌드 도구 준비 후 전역 CLI 설치
+```text
+npm install -g pake-cli
+```
+
+### ② 원클릭 앱 변환
+- 원하는 웹사이트를 데스크톱 앱 실행 파일로 즉시 빌드
+```text
+pake https://opensource-skills-library.vercel.app --name SkillsLibrary
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

@@ -47,6 +47,9 @@
           <button class="view-tab active" data-view="cards" type="button" role="tab" aria-selected="true">
             📚 전체 서재 (카드)
           </button>
+          <button class="view-tab" data-view="visual" type="button" role="tab" aria-selected="false">
+            🧭 비주얼 가이드 (흐름도·명령어)
+          </button>
           <button class="view-tab" data-view="situations" type="button" role="tab" aria-selected="false">
             🎯 적재적소 추천
           </button>
@@ -109,6 +112,7 @@
 
       <!-- Main Views -->
       <section id="cardsView" class="cards-grid"></section>
+      <section id="visualView" class="visual-guide-wrap hidden"></section>
       <section id="situationsView" class="situations-wrap hidden"></section>
       <section id="tableView" class="table-wrap hidden"></section>
 
@@ -219,6 +223,17 @@
           </div>
         </div>
 
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="fExecType">실행 형태 (시각화 배지)</label>
+            <input id="fExecType" type="text" placeholder="예: ⚡ 에이전트 스킬, 🔌 MCP 서버, 🖥️ GUI 앱" />
+          </div>
+          <div class="form-group">
+            <label for="fPrimaryCmd">핵심 실행 명령어 / 호출 프롬프트</label>
+            <input id="fPrimaryCmd" type="text" placeholder="예: /grill-with-docs 또는 npx ..." />
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="fInstallUsage">설치 및 실행 가이드</label>
           <input id="fInstallUsage" type="text" placeholder="예: 저장소 클론 후 Claude Code 스킬 경로에 설치" />
@@ -239,7 +254,7 @@
 
   <!-- Skill Detail Modal -->
   <div id="skillDetailModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
-    <div class="modal modal-lg">
+    <div class="modal modal-xl">
       <div class="modal-header">
         <div>
           <div id="detailBadges" class="detail-badges"></div>

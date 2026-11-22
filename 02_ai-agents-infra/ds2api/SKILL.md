@@ -19,6 +19,37 @@ DeepSeek 웹 채팅 기능을 OpenAI/Claude/Gemini 호환 API로 바꿔주는 Go
 
 - LLM API 호환 레이어나 Go 기반 API 어댑터/미들웨어 구조를 참고하거나 테스트할 때 (비공식 약관 주의)
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🔌 Go 기반 LLM API 호환 미들웨어
+
+```mermaid
+flowchart LR
+    S1["📨 OpenAI/Claude 규격 요청\n표준 SDK 요청 수신"]
+    S2["⚙️ Go 미들웨어 어댑터\nDeepSeek 웹 포맷으로 프로토콜 변환"]
+    S3["🔄 표준 스트리밍 응답\nOpenAI/Claude/Gemini 호환 응답 출력"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | 서비스마다 API 포맷이 달라 기존 OpenAI/Claude 툴과 호환 안 됨 |
+| ✅ **스킬 적용 후 (After)** | Go 미들웨어 구조로 다양한 클라이언트 규격을 단일 어댑터로 중계 (비공식 약관 주의) |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- Go 소스 다운로드 (비공식 프로젝트이므로 약관 확인 필수)
+```text
+powershell -File scripts\clone-skill.ps1 ds2api
+```
+
+### ② 코드 구조 분석
+- API 어댑터 패턴 참고용
+```text
+ds2api의 OpenAI/Claude/Gemini API 변환 미들웨어 구조를 분석해줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |

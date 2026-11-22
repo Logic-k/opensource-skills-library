@@ -19,6 +19,37 @@ AI 에이전트에 쓸 컴퓨터를 주는 인프라. 크로스 OS 드라이버�
 
 - GUI 조작이 가능한 Computer-Use AI 에이전트를 격리된 로컬 VM이나 크로스 OS 데스크톱 환경에서 실행·벤치마크하고 싶을 때
 
+## 한눈에 보는 작동 흐름 (Visual Workflow)
+
+- **실행 형태:** 🖥️ Computer-Use 에이전트 VM 인프라
+
+```mermaid
+flowchart LR
+    S1["📦 격리된 VM/데스크톱 생성\nmacOS/Linux/Windows 가상 데스크톱"]
+    S2["🖱️ 마우스·키보드 제어 SDK\n화면 캡처 → 클릭/타이핑 액션 실행"]
+    S3["📊 자동화 & 벤치마크\n내 PC를 망가뜨리지 않고 GUI 자동화"]
+    S1 --> S2 --> S3
+```
+
+| 구분 | 설명 |
+| :--- | :--- |
+| ❌ **기존 문제 (Before)** | GUI 조작 AI 에이전트를 내 메인 PC에서 직접 돌리면 오작동 위험이 큼 |
+| ✅ **스킬 적용 후 (After)** | 크로스 OS 드라이버와 격리된 로컬 VM 위에서 안전하게 Computer-Use 실행 |
+
+## 단계별 명령어 & 프롬프트 치트시트
+
+### ① 저장소 클론
+- trycua/cua SDK 및 VM 드라이버 다운로드
+```text
+powershell -File scripts\clone-skill.ps1 cua
+```
+
+### ② 에이전트 샌드박스 구축
+- Python 기반 Computer-Use 에이전트 연동
+```text
+cua SDK로 격리된 데스크톱 VM에서 GUI 에이전트를 돌리는 예제 코드를 작성해줘
+```
+
 ## 기본 정보
 
 | 항목 | 내용 |
