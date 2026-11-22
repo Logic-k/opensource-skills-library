@@ -1,0 +1,18 @@
+# 클론된 외부 오픈소스 저장소 원본 트리는 제외 (경량 SKILL.md 카드와 카탈로그만 Git 관리)
+*/*/repo/
+
+# API 키 / 시크릿 / Vercel 로컬 설정 절대 커밋 금지
+vercel_Key.txt
+*key*.txt
+*Key*.txt
+*token*.txt
+.env
+.env.*
+*.secret*
+.vercel/
+
+# Python / OS / IDE 임시 파일
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db

@@ -1,0 +1,53 @@
+---
+name: openmontage
+title: "OpenMontage"
+category: 06_media-video
+genre: "영상 제작 / AI 에이전트"
+status: "보고 싶음"
+repo: "OpenMontageInc/OpenMontage"
+github_url: "https://github.com/OpenMontageInc/OpenMontage"
+description: "단순 스톡 숏폼을 넘어 리서치·대본·소재 수집·편집·렌더링까지 12단계 파이프라인으로 코딩 에이전트 기반 장편/기획 영상을 제작하고 싶을 때"
+---
+
+# OpenMontage
+
+> **[영상 생성 · 편집 · 화면 녹화](../README.md)** · 세부 장르: `영상 제작 / AI 에이전트` · 상태: `보고 싶음`
+
+AI 코딩 어시스턴트를 영상 제작 스튜디오로 바꾸는 에이전트형 영상 제작 시스템. 12개 파이프라인, 리서치·대본·소재·편집·렌더까지.
+
+## 언제 꺼내 쓰나 (적재적소 활용 시점)
+
+- 단순 스톡 숏폼을 넘어 리서치·대본·소재 수집·편집·렌더링까지 12단계 파이프라인으로 코딩 에이전트 기반 장편/기획 영상을 제작하고 싶을 때
+
+## 기본 정보
+
+| 항목 | 내용 |
+| :--- | :--- |
+| **ID / 슬러그** | `#17` / `openmontage` |
+| **GitHub 저장소** | [OpenMontageInc/OpenMontage](https://github.com/OpenMontageInc/OpenMontage) |
+| **빠른 링크** | [README](https://github.com/OpenMontageInc/OpenMontage#readme) · [Issues](https://github.com/OpenMontageInc/OpenMontage/issues) · [Releases](https://github.com/OpenMontageInc/OpenMontage/releases) |
+| **세부 장르** | 영상 제작 / AI 에이전트 |
+| **저장 당시 스타** | 미표기 |
+| **주 언어 / 라이선스** | 미표기 / AGPL-3.0 |
+| **저장일 / 로컬 상태** | 2026-11-06 / 미클론 (경량 카드 모드) |
+| **태그** | `#OpenMontage` `#영상 제작` `#AI 에이전트` |
+
+## 설치 및 활용 방법
+
+- **가이드:** 저장소 클론 후 README 파이프라인 및 의존성 설치 가이드 참고
+- **원클릭 로컬 클론 (이 폴더 옆 `./repo`에 소스 다운로드):**
+  ```powershell
+  powershell -File ..\..\scripts\clone-skill.ps1 openmontage
+  ```
+- **상태 변경:**
+  ```powershell
+  python ..\..\scripts\manage_skills.py status openmontage "사용 중"
+  ```
+
+## 서재 메모 (Context & Caveats)
+
+사용자가 2026-10-03 공유한 @reborn.ax 릴에 나온 AI 개발 도구.
+
+## 나의 실습 및 커스텀 노트 (User Notes)
+
+- 여기에 직접 실행해본 설정값, 트러블슈팅, 커스텀 프롬프트 메모를 자유롭게 기록하세요.

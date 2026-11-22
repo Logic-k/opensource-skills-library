@@ -1,0 +1,7 @@
+vercel_Key.txt
+*key*.txt
+*Key*.txt
+*token*.txt
+.env*
+*/*/repo/
+.git/
